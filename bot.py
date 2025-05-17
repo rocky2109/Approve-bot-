@@ -1,13 +1,12 @@
 import os
 import logging
 import asyncio
-from aiohttp import web
-from pyrogram import Client, idle
+from pyrogram import Client
 from pyrogram.handlers import ChatJoinRequestHandler
 from pyrogram.errors import AuthKeyUnregistered, FloodWait
-
+from aiohttp import web
 from config import API_ID, API_HASH, BOT_TOKEN
-from plugins.bio import handle_join_request  # Ensure this is implemented correctly
+from plugins.bio import handle_join_request  # Import from bio.py
 
 # Configure logging
 logging.basicConfig(
@@ -20,7 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Define aiohttp routes
+# Define routes for aiohttp web server
 r = web.RouteTableDef()
 
 @r.get("/", allow_head=True)
@@ -45,6 +44,7 @@ class Bot(Client):
         )
 
     async def start(self):
+        # Start aiohttp web server
         try:
             app = web.AppRunner(await wsrvr())
             await app.setup()
@@ -56,6 +56,7 @@ class Bot(Client):
             logger.error(f"Failed to start web server: {type(e).__name__}: {e}", exc_info=True)
             raise
 
+        # Start Pyrogram client
         try:
             logger.info("Starting bot...")
             await super().start()
@@ -63,11 +64,11 @@ class Bot(Client):
             self.username = '@' + me.username
             logger.info(f"Bot started as {self.username} | Powered By @TechifyBots")
         except FloodWait as e:
-            wait_time = e.value + 10
+            wait_time = e.value + 10  # Add buffer
             logger.warning(f"FloodWait: Waiting for {wait_time} seconds before retrying")
             await asyncio.sleep(wait_time)
             logger.info("Retrying bot start after FloodWait")
-            await self.start()
+            await self.start()  # Retry
         except AuthKeyUnregistered:
             logger.error("Invalid or revoked bot token. Please check with @BotFather.")
             raise
@@ -82,13 +83,13 @@ class Bot(Client):
 
 async def main():
     bot = Bot()
-    # Register join request handler (update LOG_GROUP ID)
+    # Register the join request handler
     bot.add_handler(ChatJoinRequestHandler(
-        lambda client, m: handle_join_request(client, m, NEW_REQ_MODE=True, LOG_GROUP=-100123456789)
+        lambda client, m: handle_join_request(client, m, NEW_REQ_MODE=True, LOG_GROUP=-100123456789)  # Replace LOG_GROUP
     ))
     await bot.start()
     logger.info("Bot is running...")
-    await idle()  # ✅ Use pyrogram's idle here
+    await bot.idle()
 
 if __name__ == "__main__":
     try:

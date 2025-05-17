@@ -4,6 +4,9 @@ from pyrogram import Client
 from pyrogram.types import ChatJoinRequest
 from pyrogram.errors import UserNotMutualContact, PeerIdInvalid
 
+
+LOG_GROUP = -1002084697023  # Your log group's chat ID
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
